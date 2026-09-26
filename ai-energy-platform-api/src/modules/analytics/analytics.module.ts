@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AiAnalysisModule } from '../ai-analysis/ai-analysis.module';
 import { PrismaMeterRepository } from '../meters/infrastructure/prisma-meter.repository';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
@@ -9,6 +10,7 @@ import { PrismaMeterReadingRepository } from './infrastructure/prisma-meter-read
 import { METER_EVENT_REPOSITORY, METER_READING_REPOSITORY } from './analytics.tokens';
 
 @Module({
+  imports: [AiAnalysisModule],
   controllers: [AnalyticsController],
   providers: [
     AnalyticsService,

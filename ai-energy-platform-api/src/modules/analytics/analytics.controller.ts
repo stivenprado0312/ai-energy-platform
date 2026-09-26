@@ -8,12 +8,14 @@ import {
   AnomalyDetailResponse,
   AnomalyListItem,
 } from './dto/anomaly-response.dto';
+import { AiAnalysisService } from '../ai-analysis/ai-analysis.service';
 
 @Controller()
 export class AnalyticsController {
   constructor(
     private readonly analytics: AnalyticsService,
     private readonly anomalies: AnomaliesService,
+    private readonly ai: AiAnalysisService,
   ) {}
 
   @Get('anomalies/summary')
@@ -38,8 +40,8 @@ export class AnalyticsController {
     return {
       ...toListItem(r),
       evidence: r.evidence,
-      aiExplanation: null,
-      recommendedAction: null,
+      aiExplanation: r.aiExplanation ?? null,
+      recommendedAction: r.recommendedAction ?? null,
     };
   }
 
@@ -52,21 +54,39 @@ export class AnalyticsController {
   @Post('ai/analyze')
   async analyze(@Body() body: AnalyzeBodyDto): Promise<AnalyzeResponse> {
     const persist = body?.persist !== false;
+    const explain = body?.explain === true;
+
+    let results: ReturnType<typeof toListItem>[] = [];
+    let metersAnalyzed = 0;
+    let skippedMeters = 0;
+
     if (body?.meterId) {
       const result = await this.analytics.analyzeMeter(body.meterId, { persist });
-      return {
-        status: 'DONE',
-        anomalies: result ? [toListItem(result)] : [],
-        skippedMeters: result ? 0 : 1,
-        analyzedMeters: 1,
-      };
+      metersAnalyzed = 1;
+      if (!result) {
+        skippedMeters = 1;
+      } else {
+        results = [toListItem(result)];
+        if (explain) {
+          await this.ai.explainBatch([result.id]);
+        }
+      }
+    } else {
+      const out = await this.analytics.analyzeAll({ persist });
+      metersAnalyzed = out.metersAnalyzed;
+      skippedMeters = Math.max(0, metersAnalyzed - out.results.length);
+      results = out.results.map(toListItem);
+      if (explain && out.results.length > 0) {
+        await this.ai.explainBatch(out.results.map((r) => r.id));
+      }
     }
-    const { results, metersAnalyzed } = await this.analytics.analyzeAll({ persist });
+
     return {
       status: 'DONE',
-      anomalies: results.map(toListItem),
-      skippedMeters: Math.max(0, metersAnalyzed - results.length),
+      anomalies: results,
+      skippedMeters,
       analyzedMeters: metersAnalyzed,
+      explanationsGenerated: explain ? results.length : 0,
     };
   }
 }

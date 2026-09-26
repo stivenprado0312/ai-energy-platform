@@ -140,6 +140,8 @@ export class AnalyticsService {
       deviationPercent: round(deviationPercent, 3),
       relatedEventId: matchedEvent?.id ?? null,
       evidence,
+      aiExplanation: null,
+      recommendedAction: null,
     };
 
     if (options.persist !== false) {

@@ -28,6 +28,8 @@ export interface AnalyzeResponse {
   /** Number of meters that produced no anomaly (NORMAL). */
   skippedMeters: number;
   analyzedMeters: number;
+  /** Number of AI explanations generated when `explain: true` was passed. */
+  explanationsGenerated: number;
 }
 
 export interface AnomaliesSummaryResponse {

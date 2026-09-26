@@ -76,6 +76,27 @@ export class PrismaAnomalyRepository {
     return this.toResult(row);
   }
 
+  /**
+   * Updates only the AI explanation and recommendation columns. The
+   * analytics columns (type, severity, priority, confidence, evidence)
+   * are deliberately left untouched so that the AI layer can never
+   * alter the deterministic verdict.
+   */
+  async updateAiExplanation(
+    id: string,
+    explanation: string,
+    recommendation: string,
+  ): Promise<AnomalyResult | null> {
+    const row = await this.prisma.anomaly.update({
+      where: { id },
+      data: {
+        aiExplanation: explanation,
+        recommendedAction: recommendation,
+      },
+    });
+    return this.toResult(row);
+  }
+
   private toResult(row: {
     id: string;
     meterId: string;
@@ -109,6 +130,8 @@ export class PrismaAnomalyRepository {
       deviationPercent: row.deviationPercent,
       relatedEventId: row.relatedEventId,
       evidence: row.evidence as AnomalyResult['evidence'],
+      aiExplanation: row.aiExplanation,
+      recommendedAction: row.recommendedAction,
     };
   }
 }

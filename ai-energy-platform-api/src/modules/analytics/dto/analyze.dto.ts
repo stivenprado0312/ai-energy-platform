@@ -4,6 +4,10 @@ export class AnalyzeQueryDto {
   @IsOptional()
   @IsBoolean()
   persist?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  explain?: boolean;
 }
 
 export class AnalyzeBodyDto {
@@ -13,4 +17,8 @@ export class AnalyzeBodyDto {
   @IsOptional()
   @IsBoolean()
   persist?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  explain?: boolean;
 }

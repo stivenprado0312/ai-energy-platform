@@ -16,4 +16,6 @@ export interface AnomalyResult {
   deviationPercent: number;
   relatedEventId: string | null;
   evidence: AnalyticsEvidence;
+  aiExplanation: string | null;
+  recommendedAction: string | null;
 }

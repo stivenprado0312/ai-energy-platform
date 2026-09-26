@@ -4,13 +4,15 @@ import { AnalyticsService } from '../../analytics.service';
 import { PrismaAnomalyRepository } from '../../infrastructure/prisma-anomaly.repository';
 import { PrismaEventRepository } from '../../infrastructure/prisma-event.repository';
 import { PrismaMeterReadingRepository } from '../../infrastructure/prisma-meter-reading.repository';
-import { PrismaMeterRepository } from '../../../../modules/meters/infrastructure/prisma-meter.repository';
+import { PrismaMeterRepository } from '../../../meters/infrastructure/prisma-meter.repository';
 import { AppModule } from '../../../../app.module';
 import { HttpExceptionFilter } from '../../../../shared/filters/http-exception.filter';
+import { AiAnalysisService } from '../../../ai-analysis/ai-analysis.service';
 
 export interface AcceptanceFixture {
   app: INestApplication;
   analytics: AnalyticsService;
+  ai: AiAnalysisService;
   anomalies: PrismaAnomalyRepository;
 }
 
@@ -29,6 +31,7 @@ export async function bootstrapAcceptance(): Promise<AcceptanceFixture> {
   return {
     app,
     analytics: moduleRef.get(AnalyticsService),
+    ai: moduleRef.get(AiAnalysisService),
     anomalies: moduleRef.get(PrismaAnomalyRepository),
   };
 }
