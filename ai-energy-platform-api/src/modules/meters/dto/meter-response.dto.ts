@@ -3,6 +3,13 @@ export interface MeterListItem {
   status: string;
   readingsCount: number;
   eventsCount: number;
+  /** Total consumption across all readings (kWh). */
+  totalConsumptionKwh: number;
+  /**
+   * Relative variation of consumption (max - min) / avg.
+   * `0` when avg is 0 (no readings).
+   */
+  variation: number;
 }
 
 export interface MeterDetailResponse {

@@ -4,8 +4,16 @@ import 'reflect-metadata';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 
+const ALLOWED_ORIGINS = ['http://localhost:3001'];
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: false });
+
+  app.enableCors({
+    origin: ALLOWED_ORIGINS,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: false,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

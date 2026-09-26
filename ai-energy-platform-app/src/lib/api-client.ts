@@ -139,13 +139,16 @@ export const apiClient = {
   },
 
   analyzeAll(): Promise<{ results: AnomalyListItem[]; metersAnalyzed: number; explanationsGenerated: number; skippedMeters: number }> {
-    return request('/ai/analyze', { method: 'POST', body: JSON.stringify({}) });
+    return request('/ai/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ explain: true }),
+    });
   },
 
   analyzeMeter(meterId: string): Promise<{ results: AnomalyListItem[]; metersAnalyzed: number; skippedMeters: number }> {
     return request('/ai/analyze', {
       method: 'POST',
-      body: JSON.stringify({ meterId }),
+      body: JSON.stringify({ meterId, explain: true }),
     });
   },
 

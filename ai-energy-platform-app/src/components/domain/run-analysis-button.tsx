@@ -27,7 +27,7 @@ export function RunAnalysisButton() {
   return (
     <div className="flex flex-col items-end gap-1">
       <Button onClick={run} loading={loading}>
-        Run analysis
+        {loading ? 'Running analysis…' : 'Run AI Analysis'}
       </Button>
       {error ? (
         <span className="text-xs text-red-700" role="alert">

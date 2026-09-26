@@ -12,15 +12,28 @@ export class MetersService {
 
   async listAll(): Promise<MeterListItem[]> {
     const all = await this.meters.findAll();
+    const summaries = await this.meters.getListSummaries();
     const items: MeterListItem[] = [];
     for (const m of all) {
-      const summary = await this.meters.getConsumptionSummary(m.code);
+      const summary = summaries.get(m.code) ?? {
+        totalKwh: 0,
+        minKwh: 0,
+        maxKwh: 0,
+        avgKwh: 0,
+        readingsCount: 0,
+      };
       const eventsCount = await this.meters.countEvents(m.code);
+      const variation =
+        summary.avgKwh > 0
+          ? (summary.maxKwh - summary.minKwh) / summary.avgKwh
+          : 0;
       items.push({
         code: m.code,
         status: m.status,
         readingsCount: summary.readingsCount,
         eventsCount,
+        totalConsumptionKwh: this.round(summary.totalKwh, 3),
+        variation: this.round(variation, 4),
       });
     }
     return items;

@@ -32,15 +32,7 @@ export default function MeterDetailPage({ params }: PageProps) {
     [meterId],
   );
   const events = useAsync<MeterEvent[]>(
-    async () => {
-      // No direct /events endpoint; derive from anomaly detail when
-      // anomalies reference a matched event. Fallback: empty array.
-      try {
-        return await apiClient.getMeterEvents(meterId);
-      } catch {
-        return [];
-      }
-    },
+    async () => apiClient.getMeterEvents(meterId).catch(() => []),
     [meterId],
   );
   const anomalies = useAsync<AnomalyListItem[]>(

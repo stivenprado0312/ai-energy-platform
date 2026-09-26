@@ -10,7 +10,15 @@ interface MeterRecord {
   createdAt: Date;
 }
 
-interface SummaryRecord {
+interface ListSummaryRecord {
+  totalKwh: number;
+  minKwh: number;
+  maxKwh: number;
+  avgKwh: number;
+  readingsCount: number;
+}
+
+interface DetailSummaryRecord {
   total: number;
   avg: number;
   min: number;
@@ -23,18 +31,20 @@ interface SummaryRecord {
 function buildFakeRepo(): {
   repo: PrismaMeterRepository;
   meters: Map<string, MeterRecord>;
-  summaries: Map<string, SummaryRecord>;
+  listSummaries: Map<string, ListSummaryRecord>;
+  detailSummaries: Map<string, DetailSummaryRecord>;
   events: Map<string, number>;
 } {
   const meters = new Map<string, MeterRecord>();
-  const summaries = new Map<string, SummaryRecord>();
+  const listSummaries = new Map<string, ListSummaryRecord>();
+  const detailSummaries = new Map<string, DetailSummaryRecord>();
   const events = new Map<string, number>();
 
   const repo = {
     findAll: jest.fn(async () => Array.from(meters.values())),
     findByCode: jest.fn(async (code: string) => meters.get(code) ?? null),
     getConsumptionSummary: jest.fn(async (code: string) => {
-      const s = summaries.get(code);
+      const s = detailSummaries.get(code);
       if (!s) {
         return {
           totalKwh: 0,
@@ -56,17 +66,28 @@ function buildFakeRepo(): {
         lastTimestamp: s.last,
       };
     }),
+    getListSummaries: jest.fn(async () => {
+      const map = new Map<string, ListSummaryRecord>();
+      for (const [code, s] of listSummaries) map.set(code, s);
+      return map;
+    }),
     countEvents: jest.fn(async (code: string) => events.get(code) ?? 0),
   } as unknown as PrismaMeterRepository;
 
-  return { repo, meters, summaries, events };
+  return { repo, meters, listSummaries, detailSummaries, events };
 }
 
 function primeMeter(
-  ctx: { meters: Map<string, MeterRecord>; summaries: Map<string, SummaryRecord>; events: Map<string, number> },
+  ctx: {
+    meters: Map<string, MeterRecord>;
+    listSummaries: Map<string, ListSummaryRecord>;
+    detailSummaries: Map<string, DetailSummaryRecord>;
+    events: Map<string, number>;
+  },
   code: string,
   eventCount = 0,
-  summary: Partial<SummaryRecord> = {},
+  listSummary: Partial<ListSummaryRecord> = {},
+  detailSummary: Partial<DetailSummaryRecord> = {},
 ): void {
   ctx.meters.set(code, {
     id: `id-${code}`,
@@ -74,7 +95,15 @@ function primeMeter(
     status: 'ACTIVE',
     createdAt: new Date('2026-09-01T00:00:00Z'),
   });
-  ctx.summaries.set(code, {
+  ctx.listSummaries.set(code, {
+    totalKwh: 1000,
+    minKwh: 10,
+    maxKwh: 100,
+    avgKwh: 50,
+    readingsCount: 336,
+    ...listSummary,
+  });
+  ctx.detailSummaries.set(code, {
     total: 1000,
     avg: 50,
     min: 10,
@@ -82,17 +111,17 @@ function primeMeter(
     count: 336,
     first: new Date('2026-09-01T00:00:00Z'),
     last: new Date('2026-09-14T23:00:00Z'),
-    ...summary,
+    ...detailSummary,
   });
   ctx.events.set(code, eventCount);
 }
 
 describe('MetersService', () => {
   describe('listAll', () => {
-    it('returns the list of meters with summary and event count', async () => {
+    it('returns the list of meters with summary, consumption, variation and event count', async () => {
       const ctx = buildFakeRepo();
-      primeMeter(ctx, 'M-101', 0);
-      primeMeter(ctx, 'M-102', 1);
+      primeMeter(ctx, 'M-101', 0, { totalKwh: 1000, minKwh: 10, maxKwh: 100, avgKwh: 50, readingsCount: 336 });
+      primeMeter(ctx, 'M-102', 1, { totalKwh: 2000, minKwh: 20, maxKwh: 200, avgKwh: 100, readingsCount: 336 });
       const service = new MetersService(ctx.repo);
 
       const result = await service.listAll();
@@ -103,6 +132,8 @@ describe('MetersService', () => {
         status: 'ACTIVE',
         readingsCount: 336,
         eventsCount: 0,
+        totalConsumptionKwh: 1000,
+        variation: (100 - 10) / 50,
       });
       expect(result[1].eventsCount).toBe(1);
     });

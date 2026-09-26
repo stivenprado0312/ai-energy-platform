@@ -29,6 +29,11 @@ export interface DashboardSummary {
   totalConsumptionKwh: number;
   totalAnomalies: number;
   highPriorityAnomalies: number;
+  /**
+   * Average of `confidence` across the persisted anomalies.
+   * `null` when there are no anomalies.
+   */
+  aggregatedConfidence: number | null;
   lastReadingAt: string | null;
   analysisStatus: 'NOT_RUN' | 'READY' | 'PENDING_PHASE_2' | string;
   periodStart: string | null;
@@ -40,6 +45,8 @@ export interface MeterListItem {
   status: string;
   readingsCount: number;
   eventsCount: number;
+  totalConsumptionKwh: number;
+  variation: number;
 }
 
 export interface MeterSummary {

@@ -17,16 +17,25 @@ export class DashboardService {
     const range = await this.readings.getDateRange();
     const totalConsumption = await this.readings.getTotalConsumption();
 
-    const [totalAnomalies, highPriorityAnomalies] = await Promise.all([
+    const [totalAnomalies, highPriorityAnomalies, allAnomalies] = await Promise.all([
       this.anomalies.count({}),
       this.anomalies.count({ priority: 'HIGH' }),
+      this.anomalies.findMany({}),
     ]);
+
+    const aggregatedConfidence =
+      allAnomalies.length > 0
+        ? Math.round(
+            (allAnomalies.reduce((acc, a) => acc + a.confidence, 0) / allAnomalies.length) * 1000,
+          ) / 1000
+        : null;
 
     return {
       totalMeters: allMeters.length,
       totalConsumptionKwh: Math.round(totalConsumption * 1000) / 1000,
       totalAnomalies,
       highPriorityAnomalies,
+      aggregatedConfidence,
       lastReadingAt: range.max ? range.max.toISOString() : null,
       analysisStatus: totalAnomalies > 0 || allMeters.length > 0 ? 'READY' : 'NOT_RUN',
       periodStart: range.min ? range.min.toISOString() : null,

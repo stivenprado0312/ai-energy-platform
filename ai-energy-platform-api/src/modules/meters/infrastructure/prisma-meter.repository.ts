@@ -50,6 +50,34 @@ export class PrismaMeterRepository {
     };
   }
 
+  /**
+   * Lightweight per-meter consumption summary used by the meters list.
+   * Returns totalKwh, minKwh, maxKwh, avgKwh and the actual readings count.
+   */
+  async getListSummaries(): Promise<
+    Map<string, { totalKwh: number; minKwh: number; maxKwh: number; avgKwh: number; readingsCount: number }>
+  > {
+    const rows = await this.prisma.reading.groupBy({
+      by: ['meterId'],
+      _sum: { consumptionKwh: true },
+      _avg: { consumptionKwh: true },
+      _min: { consumptionKwh: true },
+      _max: { consumptionKwh: true },
+      _count: { _all: true },
+    });
+    const map = new Map<string, { totalKwh: number; minKwh: number; maxKwh: number; avgKwh: number; readingsCount: number }>();
+    for (const r of rows) {
+      map.set(r.meterId, {
+        totalKwh: r._sum.consumptionKwh ?? 0,
+        minKwh: r._min.consumptionKwh ?? 0,
+        maxKwh: r._max.consumptionKwh ?? 0,
+        avgKwh: r._avg.consumptionKwh ?? 0,
+        readingsCount: r._count._all,
+      });
+    }
+    return map;
+  }
+
   async countEvents(meterId: string): Promise<number> {
     return this.prisma.event.count({ where: { meterId } });
   }

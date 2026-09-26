@@ -4,6 +4,7 @@ import { PrismaMeterRepository } from '../meters/infrastructure/prisma-meter.rep
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { AnomaliesService } from './anomalies.service';
+import { EventsController } from './events.controller';
 import { PrismaAnomalyRepository } from './infrastructure/prisma-anomaly.repository';
 import { PrismaEventRepository } from './infrastructure/prisma-event.repository';
 import { PrismaMeterReadingRepository } from './infrastructure/prisma-meter-reading.repository';
@@ -11,7 +12,7 @@ import { METER_EVENT_REPOSITORY, METER_READING_REPOSITORY } from './analytics.to
 
 @Module({
   imports: [AiAnalysisModule],
-  controllers: [AnalyticsController],
+  controllers: [AnalyticsController, EventsController],
   providers: [
     AnalyticsService,
     AnomaliesService,

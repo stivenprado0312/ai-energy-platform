@@ -89,11 +89,23 @@ export default function DashboardPage() {
               tone={summary.data.highPriorityAnomalies > 0 ? 'alert' : 'normal'}
             />
             <KpiCard
-              title="Last reading"
-              value={formatDateTime(summary.data.lastReadingAt)}
-              hint={summary.data.analysisStatus}
+              title="Aggregated confidence"
+              value={
+                summary.data.aggregatedConfidence === null
+                  ? 'N/A'
+                  : `${(summary.data.aggregatedConfidence * 100).toFixed(0)}%`
+              }
+              hint={
+                summary.data.totalAnomalies > 0
+                  ? `avg of ${summary.data.totalAnomalies} anomaly confidence value(s)`
+                  : 'no anomalies to aggregate'
+              }
             />
           </section>
+
+          <p className="text-xs text-ink-subtle">
+            Last reading {formatDateTime(summary.data.lastReadingAt)} · Status {summary.data.analysisStatus}
+          </p>
 
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
