@@ -328,15 +328,23 @@ buckets. Numerical thresholds are not asserted.
 
 ## 9. Phased delivery
 
-| Phase | Goal                                                                   | Status      |
-|-------|------------------------------------------------------------------------|-------------|
-| 0     | Repo skeleton, dataset copied, docs in place                            | **done**    |
-| 1     | NestJS bootstrap, Prisma schema, migrations, seed, basic endpoints     | pending     |
-| 2     | Analytics components + unit tests + 4 acceptance tests                 | pending     |
-| 3     | Anomaly persistence, `ILLMProvider`, `StubDeterministicProvider`, AI endpoints | pending |
-| 4     | Next.js bootstrap, layout, login mock, dashboard, meter detail, charts | pending     |
-| 5     | AI analysis screen, anomalies list, investigation screen                | pending     |
-| 6     | UX polish, loading/error/empty states, README, smoke test, demo prep   | pending     |
+The MVP delivery was rolled up to five working commits (plus the
+initial repo scaffold). The table below reflects the actual state on
+`master` at the time of writing.
+
+| Phase | Goal                                                                          | Status   | Commit scope                                        |
+|-------|-------------------------------------------------------------------------------|----------|-----------------------------------------------------|
+| 0     | Repo skeleton, dataset copied, docs in place                                  | **done** | `chore: initialize project structure`               |
+| 1     | NestJS bootstrap, Prisma schema, migrations, seed, basic endpoints            | **done** | `feat(api): implement backend foundation`           |
+| 2     | Analytics components + unit tests + 4 acceptance tests                        | **done** | `feat(analytics): implement deterministic anomaly detection` |
+| 3     | Anomaly persistence, `IAiExplanationProvider`, `StubDeterministicProvider`, AI endpoints | **done** | `feat(ai): add anomaly explainability layer` |
+| 4     | Next.js bootstrap, layout, dashboard, meter detail, anomalies, investigation | **done** | `feat(frontend): implement energy management dashboard` |
+
+Phases 5 and 6 from the original AGENTS.md roadmap were merged into Phase 4
+because the Next.js implementation already covers the AI analysis screen,
+the anomalies list with filters, and the investigation screen. There is no
+"login mock" screen (the application does not require authentication for
+the challenge).
 
 If time is constrained, P0 items (dataset ingestion, backend, analytics,
 M-109, dashboard, meter detail, AI explanation) take priority over P1
