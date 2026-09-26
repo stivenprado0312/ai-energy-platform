@@ -17,6 +17,7 @@ model Meter {
   createdAt DateTime  @default(now()) @map("created_at")
   readings  Reading[]
   events    Event[]
+  anomalies Anomaly[]
 
   @@map("meters")
 }
@@ -38,13 +39,40 @@ model Reading {
 }
 
 model Event {
-  id          String   @id @default(cuid())
-  meterId     String   @map("meter_id")
-  meter       Meter    @relation(fields: [meterId], references: [code], onDelete: Cascade)
-  timestamp   DateTime @db.Timestamp(0)
+  id          String    @id @default(cuid())
+  meterId     String    @map("meter_id")
+  meter       Meter     @relation(fields: [meterId], references: [code], onDelete: Cascade)
+  timestamp   DateTime  @db.Timestamp(0)
   type        String
   description String
+  anomalies   Anomaly[]
 
   @@index([meterId, timestamp])
   @@map("events")
+}
+
+model Anomaly {
+  id                String    @id @default(cuid())
+  meterId           String    @map("meter_id")
+  meter             Meter     @relation(fields: [meterId], references: [code], onDelete: Cascade)
+  type              String
+  severity          String
+  confidence        Float
+  priority          String
+  detectedAt        DateTime  @default(now()) @map("detected_at")
+  windowStart       DateTime  @map("window_start") @db.Timestamp(0)
+  windowEnd         DateTime  @map("window_end") @db.Timestamp(0)
+  baselineKwh       Float     @map("baseline_kwh")
+  observedKwh       Float     @map("observed_kwh")
+  deviationPercent  Float     @map("deviation_percent")
+  relatedEventId    String?   @map("related_event_id")
+  relatedEvent      Event?    @relation(fields: [relatedEventId], references: [id], onDelete: SetNull)
+  evidence          Json
+  aiExplanation     String?   @map("ai_explanation")
+  recommendedAction String?   @map("recommended_action")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  @@index([meterId, type, priority])
+  @@index([detectedAt])
+  @@map("anomalies")
 }

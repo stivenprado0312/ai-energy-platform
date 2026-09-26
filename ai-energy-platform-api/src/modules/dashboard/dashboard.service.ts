@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaAnomalyRepository } from '../analytics/infrastructure/prisma-anomaly.repository';
 import { PrismaMeterRepository } from '../meters/infrastructure/prisma-meter.repository';
 import { PrismaReadingRepository } from '../readings/infrastructure/prisma-reading.repository';
 import { DashboardSummaryResponse } from './dto/dashboard-summary-response.dto';
@@ -8,6 +9,7 @@ export class DashboardService {
   constructor(
     private readonly meters: PrismaMeterRepository,
     private readonly readings: PrismaReadingRepository,
+    private readonly anomalies: PrismaAnomalyRepository,
   ) {}
 
   async getSummary(): Promise<DashboardSummaryResponse> {
@@ -15,13 +17,18 @@ export class DashboardService {
     const range = await this.readings.getDateRange();
     const totalConsumption = await this.readings.getTotalConsumption();
 
+    const [totalAnomalies, highPriorityAnomalies] = await Promise.all([
+      this.anomalies.count({}),
+      this.anomalies.count({ priority: 'HIGH' }),
+    ]);
+
     return {
       totalMeters: allMeters.length,
       totalConsumptionKwh: Math.round(totalConsumption * 1000) / 1000,
-      totalAnomalies: 0,
-      highPriorityAnomalies: 0,
+      totalAnomalies,
+      highPriorityAnomalies,
       lastReadingAt: range.max ? range.max.toISOString() : null,
-      analysisStatus: 'PENDING_PHASE_2',
+      analysisStatus: totalAnomalies > 0 || allMeters.length > 0 ? 'READY' : 'NOT_RUN',
       periodStart: range.min ? range.min.toISOString() : null,
       periodEnd: range.max ? range.max.toISOString() : null,
     };

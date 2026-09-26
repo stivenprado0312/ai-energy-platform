@@ -24,16 +24,15 @@ describe('DashboardController (HTTP, real DB)', () => {
     await app.close();
   });
 
-  it('GET /dashboard/summary returns the expected Phase 1 shape', async () => {
+  it('GET /dashboard/summary returns the expected shape', async () => {
     const res = await request(app.getHttpServer()).get('/dashboard/summary').expect(200);
-    expect(res.body).toMatchObject({
-      totalMeters: 12,
-      totalAnomalies: 0,
-      highPriorityAnomalies: 0,
-      analysisStatus: 'PENDING_PHASE_2',
-    });
+    expect(res.body.totalMeters).toBe(12);
     expect(typeof res.body.totalConsumptionKwh).toBe('number');
     expect(res.body.totalConsumptionKwh).toBeGreaterThan(0);
+    expect(typeof res.body.totalAnomalies).toBe('number');
+    expect(typeof res.body.highPriorityAnomalies).toBe('number');
+    expect(res.body.highPriorityAnomalies).toBeLessThanOrEqual(res.body.totalAnomalies);
+    expect(['NOT_RUN', 'READY']).toContain(res.body.analysisStatus);
     expect(res.body.lastReadingAt).not.toBeNull();
     expect(res.body.periodStart).not.toBeNull();
     expect(res.body.periodEnd).not.toBeNull();
