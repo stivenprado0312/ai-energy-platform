@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { use, useState } from 'react';
+import { notFound } from 'next/navigation';
+import { use, useEffect, useState } from 'react';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { SeverityBadge, TypeBadge } from '@/components/ui/badges';
 import { EvidencePanel } from '@/components/domain/evidence-panel';
@@ -10,7 +11,7 @@ import { RelatedEventCard } from '@/components/domain/related-event-card';
 import { ErrorState, LoadingBlock } from '@/components/ui/states';
 import { Button } from '@/components/ui/button';
 import { useAsync } from '@/lib/hooks/use-async';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, ApiError } from '@/lib/api-client';
 import { formatDateTime, formatKwh, formatPercent } from '@/lib/format';
 import type { AnomalyDetail, AiExplanationResponse } from '@/lib/types';
 
@@ -20,20 +21,38 @@ interface PageProps {
 
 export default function AnomalyDetailPage({ params }: PageProps) {
   const { id } = use(params);
+  const [triggeredNotFound, setTriggeredNotFound] = useState(false);
   const { data, status, error, refetch } = useAsync<AnomalyDetail>(
     () => apiClient.getAnomaly(id),
     [id],
   );
   const [explanation, setExplanation] = useState<AiExplanationResponse | null>(null);
 
+  useEffect(() => {
+    if (status === 'ready' && !data) {
+      setTriggeredNotFound(true);
+    } else if (status === 'error' && error instanceof ApiError && error.status === 404) {
+      setTriggeredNotFound(true);
+    } else {
+      setTriggeredNotFound(false);
+    }
+  }, [status, data, error]);
+
+  if (triggeredNotFound) {
+    notFound();
+  }
+
   if (status === 'loading') return <LoadingBlock rows={6} />;
-  if (status === 'error' || !data) {
+  if (status === 'error' && error && !(error instanceof ApiError && error.status === 404)) {
     return (
       <ErrorState
-        description={error?.message ?? 'Anomaly not found.'}
+        description={error.message ?? 'Could not load anomaly.'}
         onRetry={refetch}
       />
     );
+  }
+  if (status === 'error' || !data) {
+    notFound();
   }
 
   const live = explanation
@@ -70,6 +89,13 @@ export default function AnomalyDetailPage({ params }: PageProps) {
           ← Back to anomalies
         </Link>
       </div>
+
+      <p
+        className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs uppercase tracking-wide text-slate-600"
+        data-testid="deterministic-verdict-banner"
+      >
+        Deterministic verdict — produced by the analytics engine
+      </p>
 
       <Card>
         <CardHeader
@@ -109,6 +135,13 @@ export default function AnomalyDetailPage({ params }: PageProps) {
           </div>
         </CardBody>
       </Card>
+
+      <p
+        className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs uppercase tracking-wide text-blue-700"
+        data-testid="ai-explanation-banner"
+      >
+        AI explanation — generated from the deterministic evidence above
+      </p>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <AiExplanationPanel

@@ -5,7 +5,8 @@
     "moduleResolution": "node",
     "jsx": "react-jsx",
     "isolatedModules": false,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["@testing-library/jest-dom", "node", "jest"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"]
 }

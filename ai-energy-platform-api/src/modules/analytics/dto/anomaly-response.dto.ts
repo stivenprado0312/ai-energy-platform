@@ -30,6 +30,12 @@ export interface AnalyzeResponse {
   analyzedMeters: number;
   /** Number of AI explanations generated when `explain: true` was passed. */
   explanationsGenerated: number;
+  /**
+   * Number of anomalies in this response that have HIGH severity
+   * or HIGH priority. Lets the UI display messages like
+   * "4 anomalies detected · 2 require priority attention".
+   */
+  requiringAttention: number;
 }
 
 export interface AnomaliesSummaryResponse {

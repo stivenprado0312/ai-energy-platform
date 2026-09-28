@@ -36,7 +36,7 @@ export function AiExplanationPanel({ anomalyId, existing, onGenerated }: Props) 
     <Card>
       <CardHeader
         title="AI explanation"
-        subtitle="Renders the structured evidence into plain language. Does not change the deterministic verdict."
+        subtitle="AI-generated text from the deterministic evidence above. Does not change the verdict."
         actions={
           explanation ? (
             <Button variant="secondary" loading={loading} onClick={generate}>

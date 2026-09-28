@@ -138,14 +138,14 @@ export const apiClient = {
     );
   },
 
-  analyzeAll(): Promise<{ results: AnomalyListItem[]; metersAnalyzed: number; explanationsGenerated: number; skippedMeters: number }> {
+  analyzeAll(): Promise<{ anomalies: AnomalyListItem[]; metersAnalyzed: number; explanationsGenerated: number; skippedMeters: number; requiringAttention: number }> {
     return request('/ai/analyze', {
       method: 'POST',
       body: JSON.stringify({ explain: true }),
     });
   },
 
-  analyzeMeter(meterId: string): Promise<{ results: AnomalyListItem[]; metersAnalyzed: number; skippedMeters: number }> {
+  analyzeMeter(meterId: string): Promise<{ anomalies: AnomalyListItem[]; metersAnalyzed: number; skippedMeters: number; requiringAttention: number }> {
     return request('/ai/analyze', {
       method: 'POST',
       body: JSON.stringify({ meterId, explain: true }),

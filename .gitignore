@@ -41,3 +41,6 @@ prisma/migrations/dev.db*
 # Dataset safety: never commit the evaluator-only expected results file
 data/expected_results.csv
 /expected_results.csv
+
+# Personal architecture guide for code defense: kept local, not tracked
+ARCHITECTURE-GUIDE.md

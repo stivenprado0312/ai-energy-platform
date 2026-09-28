@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import './../styles/globals.css';
+import { AuthIndicator } from '@/components/ui/auth-indicator';
 
 export const metadata: Metadata = {
   title: 'AI Energy Platform',
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NavLink href="/">Dashboard</NavLink>
               <NavLink href="/meters">Meters</NavLink>
               <NavLink href="/anomalies">Anomalies</NavLink>
+              <AuthIndicator />
             </nav>
           </div>
         </header>

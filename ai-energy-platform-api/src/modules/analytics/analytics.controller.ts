@@ -87,6 +87,9 @@ export class AnalyticsController {
       skippedMeters,
       analyzedMeters: metersAnalyzed,
       explanationsGenerated: explain ? results.length : 0,
+      requiringAttention: results.filter(
+        (a) => a.severity === 'HIGH' || a.priority === 'HIGH',
+      ).length,
     };
   }
 }

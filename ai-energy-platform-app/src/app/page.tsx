@@ -1,26 +1,50 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { MetricPill, SeverityBadge, TypeBadge } from '@/components/ui/badges';
 import { ConsumptionChart } from '@/components/charts/consumption-chart';
 import { AnomalyTypeBreakdown } from '@/components/charts/anomaly-type-breakdown';
 import { AnomalyCard } from '@/components/domain/anomaly-card';
-import { RunAnalysisButton } from '@/components/domain/run-analysis-button';
 import { ErrorState, LoadingBlock } from '@/components/ui/states';
 import { useAsync } from '@/lib/hooks/use-async';
 import { apiClient } from '@/lib/api-client';
 import { formatDateTime, formatKwh, formatRange } from '@/lib/format';
 import type { AnomalyListItem, AnomaliesSummary, DashboardSummary, MeterListItem, Reading } from '@/lib/types';
 
+const DEMO_AUTH_KEY = 'demo-authed';
+
 export default function DashboardPage() {
-  const summary = useAsync<DashboardSummary>(() => apiClient.getDashboardSummary(), []);
-  const meters = useAsync<MeterListItem[]>(() => apiClient.listMeters(), []);
-  const anomalies = useAsync<AnomalyListItem[]>(() => apiClient.listAnomalies(), []);
+  const router = useRouter();
+  const [authed, setAuthed] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isAuthed = window.localStorage.getItem(DEMO_AUTH_KEY) === '1';
+    if (!isAuthed) {
+      router.replace('/login');
+    } else {
+      setAuthed(true);
+    }
+  }, [router]);
+
+  const summary = useAsync<DashboardSummary>(
+    () => (authed ? apiClient.getDashboardSummary() : new Promise<DashboardSummary>(() => {})),
+    [authed],
+  );
+  const meters = useAsync<MeterListItem[]>(
+    () => (authed ? apiClient.listMeters() : new Promise<MeterListItem[]>(() => {})),
+    [authed],
+  );
+  const anomalies = useAsync<AnomalyListItem[]>(
+    () => (authed ? apiClient.listAnomalies() : new Promise<AnomalyListItem[]>(() => {})),
+    [authed],
+  );
   const anomaliesSummary = useAsync<AnomaliesSummary>(
-    () => apiClient.getAnomaliesSummary(),
-    [],
+    () => (authed ? apiClient.getAnomaliesSummary() : new Promise<AnomaliesSummary>(() => {})),
+    [authed],
   );
 
   // Aggregate dashboard consumption chart from all meters — too many
@@ -33,12 +57,13 @@ export default function DashboardPage() {
   );
   const sampleReadings = useAsync<Reading[]>(
     async () => {
+      if (!authed) return [];
       const sets = await Promise.all(
         sampleMeterIds.map((id) => apiClient.getMeterReadings(id, { limit: 200 })),
       );
       return sets.flat();
     },
-    [sampleMeterIds.join(',')],
+    [sampleMeterIds.join(','), authed],
   );
 
   const topAnomalies = (anomalies.data ?? [])
@@ -55,7 +80,6 @@ export default function DashboardPage() {
             Overview of monitored meters, consumption, and detected anomalies.
           </p>
         </div>
-        <RunAnalysisButton />
       </div>
 
       {summary.status === 'loading' ? <LoadingBlock rows={4} /> : null}

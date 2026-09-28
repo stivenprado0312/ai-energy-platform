@@ -16,6 +16,18 @@ type SortKey = 'meterId' | 'type' | 'severity' | 'priority' | 'deviationPercent'
 const SEVERITY_RANK: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 };
 const PRIORITY_RANK: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 };
 
+/**
+ * Short recommended next step per anomaly type, matching the
+ * `RecommendationCard` headline used on the detail screen.
+ */
+const ACTION_LABEL: Record<string, string> = {
+  REAL_ANOMALY: 'Investigar',
+  EXPLAINABLE: 'Validar operación',
+  FALSE_POSITIVE: 'No escalar',
+  DATA_QUALITY: 'Validar sensor',
+  NORMAL: '—',
+};
+
 export function AnomaliesTable({ data, loading = false }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('priority');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -73,6 +85,7 @@ export function AnomaliesTable({ data, loading = false }: Props) {
             <Th onClick={() => toggleSort('priority')} active={sortKey === 'priority'} dir={sortDir}>
               Priority
             </Th>
+            <Th>Acción</Th>
             <Th
               onClick={() => toggleSort('deviationPercent')}
               active={sortKey === 'deviationPercent'}
@@ -121,6 +134,15 @@ export function AnomaliesTable({ data, loading = false }: Props) {
               </td>
               <td className="px-4 py-3 align-middle">
                 <SeverityBadge value={a.priority} />
+              </td>
+              <td className="px-4 py-3 align-middle">
+                <span
+                  className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-ink"
+                  data-testid="anomaly-action"
+                  data-action={a.type}
+                >
+                  {ACTION_LABEL[a.type] ?? a.type}
+                </span>
               </td>
               <td className="px-4 py-3 align-middle font-mono">
                 {formatPercent(a.deviationPercent)}

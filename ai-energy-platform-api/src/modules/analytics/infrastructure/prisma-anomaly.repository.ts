@@ -53,26 +53,44 @@ export class PrismaAnomalyRepository {
     return result.count;
   }
 
-  async create(result: AnomalyResult): Promise<AnomalyResult> {
-    const row = await this.prisma.anomaly.create({
-      data: {
-        meterId: result.meterId,
-        type: result.type,
-        severity: result.severity,
-        confidence: result.confidence,
-        priority: result.priority,
-        detectedAt: new Date(result.detectedAt),
-        windowStart: new Date(result.windowStart),
-        windowEnd: new Date(result.windowEnd),
-        baselineKwh: result.baselineKwh,
-        observedKwh: result.observedKwh,
-        deviationPercent: result.deviationPercent,
-        relatedEventId: result.relatedEventId ?? null,
-        evidence: result.evidence as unknown as Prisma.InputJsonValue,
-        aiExplanation: null,
-        recommendedAction: null,
-      },
+  /**
+   * Insert or update the single anomaly row for a given meter.
+   *
+   * This keeps the row id stable across runs of "Run AI Analysis", so
+   * that bookmarks and direct links to `/anomalies/{id}` keep working
+   * even after the analytics engine reruns. Only the analytics and
+   * timestamp columns change; the id is preserved.
+   */
+  async createOrUpdate(result: AnomalyResult): Promise<AnomalyResult> {
+    const existing = await this.prisma.anomaly.findFirst({
+      where: { meterId: result.meterId },
+      select: { id: true },
     });
+    const data = {
+      type: result.type,
+      severity: result.severity,
+      confidence: result.confidence,
+      priority: result.priority,
+      detectedAt: new Date(result.detectedAt),
+      windowStart: new Date(result.windowStart),
+      windowEnd: new Date(result.windowEnd),
+      baselineKwh: result.baselineKwh,
+      observedKwh: result.observedKwh,
+      deviationPercent: result.deviationPercent,
+      relatedEventId: result.relatedEventId ?? null,
+      evidence: result.evidence as unknown as Prisma.InputJsonValue,
+    };
+    const row = existing
+      ? await this.prisma.anomaly.update({ where: { id: existing.id }, data })
+      : await this.prisma.anomaly.create({
+          data: {
+            ...(result.id ? { id: result.id } : {}),
+            meterId: result.meterId,
+            ...data,
+            aiExplanation: null,
+            recommendedAction: null,
+          },
+        });
     return this.toResult(row);
   }
 

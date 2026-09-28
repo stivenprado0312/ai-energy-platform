@@ -145,8 +145,7 @@ export class AnalyticsService {
     };
 
     if (options.persist !== false) {
-      await this.anomalies.deleteAllForMeter(meterId);
-      const persisted = await this.anomalies.create(result);
+      const persisted = await this.anomalies.createOrUpdate(result);
       this.logger.log(
         `Anomaly persisted for ${meterId}: ${persisted.type}/${persisted.severity}/${persisted.priority}`,
       );

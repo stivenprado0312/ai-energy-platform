@@ -9,6 +9,7 @@ import { ElectricalChart } from '@/components/charts/consumption-chart';
 import { MeterSummaryCard } from '@/components/domain/meter-summary-card';
 import { EventsList } from '@/components/domain/events-list';
 import { AnomalyCard } from '@/components/domain/anomaly-card';
+import { RunAnalysisButton } from '@/components/domain/run-analysis-button';
 import { ErrorState, LoadingBlock } from '@/components/ui/states';
 import { useAsync } from '@/lib/hooks/use-async';
 import { apiClient } from '@/lib/api-client';
@@ -46,13 +47,14 @@ export default function MeterDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <Link
           href="/meters"
           className="inline-flex items-center gap-1 text-sm font-medium text-ink-muted hover:text-ink"
         >
           ← Back to meters
         </Link>
+        <RunAnalysisButton meterId={meterId} />
       </div>
 
       {detail.status === 'loading' ? <LoadingBlock rows={4} /> : null}

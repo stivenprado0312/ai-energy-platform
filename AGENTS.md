@@ -886,6 +886,11 @@ POST /ai/analyze
 
 The frontend must show a meaningful analysis state.
 
+The trigger button **Run AI Analysis** must be reachable from at least:
+
+* the Dashboard (global run)
+* the Meter detail page (`/meters/:meterId`) for single-meter runs
+
 Conceptual pipeline:
 
 Readings
@@ -895,6 +900,10 @@ Readings
 → Events
 → Explanation
 → Recommendation
+
+The response of `POST /ai/analyze` MUST include a `requiringAttention`
+count (anomalies with HIGH severity or HIGH priority) so the UI can show
+messages like `"4 anomalías detectadas · 2 requieren atención prioritaria"`.
 
 Do not fake asynchronous progress.
 
@@ -906,23 +915,26 @@ If analysis becomes asynchronous, persist and expose real status.
 
 # 32. Investigation Screen
 
+The investigation screen (`/anomalies/:id`) must visually separate the
+**deterministic verdict** (computed by the analytics engine) from the
+**AI explanation** (rendered by the StubDeterministic AI provider). The
+evaluator must immediately see what the engine produced and what the AI
+added.
+
 The investigation screen must answer:
 
-What happened?
+* What happened? (deterministic evidence: baseline, deviation, outliers)
+* Why? (matched operational event, if any)
+* What variables changed? (electrical consistency + outliers panel)
+* Was there an event? (RelatedEventCard or "no event" panel)
+* What is the severity? (badge)
+* What is the confidence? (numeric)
+* What evidence supports the conclusion? (EvidencePanel)
+* What action is recommended? (RecommendationCard)
 
-Why?
-
-What variables changed?
-
-Was there an event?
-
-What is the severity?
-
-What is the confidence?
-
-What evidence supports the conclusion?
-
-What action is recommended?
+The `/anomalies` list view MUST include an "Acción" column that
+summarises the recommended next step per anomaly
+(Investigar / Validar operación / No escalar / Validar sensor).
 
 ---
 
@@ -938,26 +950,29 @@ Tailwind CSS
 
 Recharts
 
-Suggested routes:
+Required routes:
 
-/login
-
+/login              ← entry point; mock form that accepts any input
+                     and redirects to /dashboard. Mandatory because
+                     the challenge's UX criterion lists it as step 1.
 /dashboard
-
-/meters/[meterId]
-
-/ai
-
+/meters
+/meters/[meterId]   ← MUST have a "Run analysis" / "Run AI Analysis"
+                     button so the user can execute the analysis from
+                     the meter detail page (not only from the dashboard).
+/anomalies
 /anomalies/[id]
+/ai                 ← optional landing page for the analysis flow
 
 The primary demo path is:
 
 /login
 → /dashboard
 → /meters/M-109
-→ Run AI Analysis
-→ /ai
-→ /anomalies/[id]
+→ Run AI Analysis     ← must be reachable from M-109 detail page
+→ /anomalies/M-109    (or list)
+→ /anomalies/:id
+→ Evidence + AI explanation + Recommended action
 
 ---
 
@@ -1288,6 +1303,12 @@ Do not claim AI capabilities that are not implemented.
 
 ## Phase 6 — Finalization
 
+* login mock
+* Run AI Analysis button reachable from meter detail
+* Acción column in anomalies list
+* visual separation "deterministic verdict" vs "AI explanation" on
+  the investigation screen
+* `requiringAttention` counter in `POST /ai/analyze` response
 * UX polish
 * loading/error/empty states
 * tests
