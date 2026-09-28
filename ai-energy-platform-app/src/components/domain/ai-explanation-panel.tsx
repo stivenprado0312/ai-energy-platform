@@ -37,13 +37,6 @@ export function AiExplanationPanel({ anomalyId, existing, onGenerated }: Props) 
       <CardHeader
         title="AI explanation"
         subtitle="AI-generated text from the deterministic evidence above. Does not change the verdict."
-        actions={
-          explanation ? (
-            <Button variant="secondary" loading={loading} onClick={generate}>
-              Regenerate
-            </Button>
-          ) : null
-        }
       />
       <CardBody>
         {explanation ? (
@@ -66,9 +59,9 @@ export function AiExplanationPanel({ anomalyId, existing, onGenerated }: Props) 
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-ink-muted">
-              No AI explanation has been generated yet. The explanation is built from the
-              structured evidence that the analytics engine already produced — it will not
-              change the type, severity, or priority.
+              The AI explanation has not been generated yet. The explanation is built
+              from the structured evidence that the analytics engine already produced — it
+              will not change the type, severity, or priority.
             </p>
             {error ? (
               <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
